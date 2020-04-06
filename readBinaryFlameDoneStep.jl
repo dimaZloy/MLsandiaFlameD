@@ -1,32 +1,37 @@
 
+## DL
+
 
 debug = false;
-geenerateDataSet = false;
+generateDataSet = false;
 
 nCells = 4608;
 nTimeLevels = Int32( 3115008/4/nCells );
 nSpecie = 5;
 
-dataT = zeros(Float32,nTimeLevels*nCells);
+NN = nTimeLevels*nCells;
+
+
+dataT = zeros(Float32,NN);
 dataTindex = zeros(Int32,nCells);
 
 for i = 1:nCells
 	dataTindex[i] = i;
 end
 
-dataY0 = zeros(Float32,nTimeLevels*nCells,nSpecie);
+dataY0 = zeros(Float32,NN,nSpecie);
 
-dataY01 = zeros(Float32,nTimeLevels*nCells);
-dataY02 = zeros(Float32,nTimeLevels*nCells);
-dataY03 = zeros(Float32,nTimeLevels*nCells);
-dataY04 = zeros(Float32,nTimeLevels*nCells);
-dataY05 = zeros(Float32,nTimeLevels*nCells);
+dataY01 = zeros(Float32,NN);
+dataY02 = zeros(Float32,NN);
+dataY03 = zeros(Float32,NN);
+dataY04 = zeros(Float32,NN);
+dataY05 = zeros(Float32,NN);
 
-dataYF1 = zeros(Float32,nTimeLevels*nCells);
-dataYF2 = zeros(Float32,nTimeLevels*nCells);
-dataYF3 = zeros(Float32,nTimeLevels*nCells);
-dataYF4 = zeros(Float32,nTimeLevels*nCells);
-dataYF5 = zeros(Float32,nTimeLevels*nCells);
+dataYF1 = zeros(Float32,NN);
+dataYF2 = zeros(Float32,NN);
+dataYF3 = zeros(Float32,NN);
+dataYF4 = zeros(Float32,NN);
+dataYF5 = zeros(Float32,NN);
 
 print("Load data: ");
 
@@ -80,6 +85,23 @@ print("done\n");
 
 using PyPlot;
 
+function normalizeT(dataX)
+
+	xmin_ =  findmin(dataX) ;
+	xmax_ =  findmax(dataX) ;
+	
+	xmin =Float32( xmin_[1]);
+	xmax =Float32( xmax_[1]);
+	dx = Float32(xmax-xmin);
+
+	dataX[:] =  (dataX[:] .- xmin) ./ dx ; 
+	
+	#for i =1:NN
+	#	dataX[i] = (dataX[i] - xmin) / dx; 
+	#end
+	
+end
+
 function  checkBoundness(dataX,xMinB,xMaxB,field)
 	xmin = findmin(dataX);
 	xmax = findmax(dataX);
@@ -101,6 +123,10 @@ function zzplot(nTimeLevels,nCells, dataTindex,dataX, marker )
 end
 
 checkBoundness(dataT,200.0,3000.0,"T");
+
+normalizeT(dataT); ## normalize T to 0-1
+
+
 checkBoundness(dataY01,0.0,1.0,"Y01");
 checkBoundness(dataY02,0.0,1.0,"Y02");
 checkBoundness(dataY03,0.0,1.0,"Y03");
@@ -166,7 +192,6 @@ print("\nreshaping data ...\n");
 X = zeros(Float32,6);
 Y = zeros(Float32,5);
 
-NN = nTimeLevels*nCells;
 
 i =1;
 
@@ -184,7 +209,14 @@ Y[4] = dataYF4[i];
 Y[5] = dataYF5[i];
 
 
+XX = zeros(Float32,6,NN);
+YY = zeros(Float32,5,NN);
+
 ss = (X,Y);
+
+XX[:,1] = X;
+YY[:,1] = Y;
+
 
 counter =2;
 
@@ -211,6 +243,10 @@ counter =2;
 	
 	ss = [ss (X,Y)];
 	
+	XX[:,i] = X;
+	YY[:,i] = Y;
+	
+	
 	counter += 1;
 	if (counter > nCells)
 		print("=")
@@ -222,5 +258,8 @@ end
 print("=>\ndone\n");
 
 using BSON: @save
-@save "flamedonestep.bson" ss
+@save "flamedonestepSS.bson" ss
+@save "flamedonestepXX.bson" XX
+@save "flamedonestepYY.bson" YY
+
 

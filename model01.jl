@@ -14,9 +14,9 @@ debugReadData = false;
 if (debugReadData)
 
 	print("\nreading dataset ...\n");
-	@time @load "flamedonestep.bson" ss
-	@time @load "flamedonestepX.bson" X
-	@time @load "flamedonestepY.bson" Y
+	@time @load "flamedonestepSS.bson" ss
+	@time @load "flamedonestepXX.bson" XX
+	@time @load "flamedonestepYY.bson" YY
 end
 
 
@@ -35,23 +35,26 @@ end
 ##  Y[:,i] = ss[i][2];
 #end
 
-
+##baseline
+##m = Flux.Chain(Dense(6,7,σ),Dense(7,5), softmax)
 
 m = Flux.Chain(Dense(6,7,σ),Dense(7,5), softmax)
-m2 = Flux.Chain(Dense(6,7,elu),Dense(7,5), elu)
+##m = Flux.Chain(Dense(6,7,relu.(XX)),Dense(7,5), relu)
 
 
-loss(X,Y) = Flux.crossentropy(m(X),Y);
-loss2(X,Y) = Flux.mse(m(X),Y);
+
+
+##loss(XX,YY) = Flux.crossentropy(m(XX),YY);
+
+loss(X,Y) = Flux.mse(m(XX),YY);
 
 ps = Flux.params(m);
-ps2 = Flux.params(m2);
 
-evalcb = ()-> @show(loss(X,Y))
-evalcb2 = ()-> @show(loss2(X,Y))
+evalcb = ()-> @show(loss(XX,YY))
+##evalcb2 = ()-> @show(loss2(X,Y))
 
-##@epochs 1 Flux.train!(loss, ps, ss, ADAM(), cb = Flux.throttle(evalcb,30))
-@epochs 1 Flux.train!(loss2, ps, ss, ADAM(), cb = Flux.throttle(evalcb2,10))
+@epochs 1 Flux.train!(loss, ps, ss, NADAM(), cb = Flux.throttle(evalcb,1))
+##@epochs 1 Flux.train!(loss, ps3, ss, ADAM(), cb = Flux.throttle(evalcb,1))
 
 ##Flux.train!(loss2, ps, ab, ADAM(), cb="")
 
