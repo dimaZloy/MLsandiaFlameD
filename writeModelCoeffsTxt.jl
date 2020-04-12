@@ -21,11 +21,20 @@ ci, cj = size(c);
 di = length(d);
 
 
+#	for i=1:ai
+#		for j = 1:aj
+#			print(a[i,j],"\t",i,"\t",j,"\n");
+#		end
+#	end
+
+saveWeights = true;
+
+if (saveWeights)
 
 open("delim_file.txt", "w") do io
 
 	as = string("a matrix size of: ",ai,"x",aj);
-	writedlm(io, "a matrix:","") 
+	writedlm(io, "a matrix:",":") 
 	for i=1:ai
 		for j = 1:aj
 			writedlm(io, a[i,j]);
@@ -57,4 +66,4 @@ open("delim_file.txt", "w") do io
 	
 end
 
-
+end
